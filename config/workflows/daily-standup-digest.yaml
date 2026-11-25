@@ -1,0 +1,20 @@
+name: daily-standup-digest
+description: Weekday 09:00 digest of yesterday's merged PRs and blocked Jira issues, posted to Slack.
+on:
+  cron: "0 9 * * 1-5"
+steps:
+  - id: prs
+    tool: github_search_prs
+    args: {query: "is:pr is:merged merged:>={{ event.since }}"}
+  - id: blocked
+    tool: jira_search
+    args: {jql: "status = Blocked AND updated >= -1d"}
+  - id: digest
+    kind: llm
+    llm:
+      route: fast
+      prompt: "Write a concise standup digest: merged PRs (grouped by area), blocked items with owners. Max 12 bullets."
+      input: {prs: "{{ steps.prs.output }}", blocked: "{{ steps.blocked.output }}"}
+  - id: post
+    tool: post_slack
+    args: {channel: "#eng-standup", text: "{{ steps.digest.text }}"}

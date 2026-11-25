@@ -1,0 +1,8 @@
+# Meeting agent: every write needs approval (audio is untrusted; owners/assignments are human calls).
+agent: meetings
+budget: {usd: 0.5, tokens: 800000, steps: 30, wall_s: 1800}
+defaults: {read: allow, write_internal: allow, write_external: approve, dangerous: deny}
+tools:
+  create_ticket: write_external
+  create_notion_page: write_external
+  post_slack: write_external

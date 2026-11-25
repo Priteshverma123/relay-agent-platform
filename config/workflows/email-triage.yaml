@@ -1,0 +1,16 @@
+name: email-triage
+description: Classify incoming support email; bugs become Jira tickets, questions go to the support agent.
+on:
+  email: received
+steps:
+  - id: classify
+    kind: agent
+    agent: support
+    input: {channel: "email", raw_message: "{{ event.body }}", customer: "{{ event.from }}"}
+  - id: notify
+    kind: branch
+    if: "steps.classify.get('jira_key')"
+    then:
+      - id: tell_team
+        tool: post_slack
+        args: {channel: "#support", text: "New ticket {{ steps.classify.jira_key }} from email: {{ event.subject }}"}

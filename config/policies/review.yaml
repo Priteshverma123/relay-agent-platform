@@ -1,0 +1,9 @@
+# Review agent: posting review comments on the PR it was invoked for is its purpose, so it is
+# allowed even for PRs from forks (tainted), with mandatory outbound secret scanning.
+agent: review
+budget: {usd: 0.5, tokens: 600000, steps: 20, wall_s: 900}
+defaults: {read: allow, write_internal: allow, write_external: approve, dangerous: deny}
+tools:
+  post_review: {class: write_external, decision: allow, when_tainted: allow, scan_outbound: true}
+  approve_pr: {class: dangerous, decision: deny}
+  request_changes: {class: dangerous, decision: deny}

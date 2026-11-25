@@ -1,0 +1,12 @@
+# Support agent: customer messages are always untrusted. Replies with high grounding confidence
+# are allowed (scanned); low confidence ones are routed to a human by the graph itself.
+agent: support
+budget: {usd: 0.2, tokens: 200000, steps: 10, wall_s: 300}
+defaults: {read: allow, write_internal: allow, write_external: approve, dangerous: deny}
+allow_pii_outbound: false
+tools:
+  kb_search: read
+  reply_customer: {class: write_external, decision: allow, when_tainted: allow, scan_outbound: true}
+  create_ticket: {class: write_external, decision: allow, when_tainted: allow, scan_outbound: true}
+  refund: {class: dangerous, decision: deny}
+  delete_account: {class: dangerous, decision: deny}

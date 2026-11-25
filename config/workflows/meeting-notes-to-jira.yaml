@@ -1,0 +1,9 @@
+name: meeting-notes-to-jira
+description: When a meeting recording is uploaded, run the meeting agent (which asks for approval before any writes).
+on:
+  manual: true
+steps:
+  - id: meeting
+    kind: agent
+    agent: meetings
+    input: {audio_path: "{{ event.audio_path }}", attendees: "{{ event.attendees }}"}

@@ -1,0 +1,82 @@
+[project]
+name = "relay"
+version = "0.1.0"
+description = "Relay: durable, policy-enforced engineering-agent platform (coding, review, support, meetings, workflows)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sse-starlette>=2.1",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "orjson>=3.10",
+    "pyyaml>=6.0",
+    "jinja2>=3.1",
+    "jsonschema>=4.23",
+    "httpx>=0.27",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "psycopg[binary,pool]>=3.2",
+    "pgvector>=0.3.6",
+    "redis>=5.2",
+    "arq>=0.26",
+    "docker>=7.1",
+    "pyjwt[crypto]>=2.9",
+    "langgraph>=0.2.60",
+    "langgraph-checkpoint-postgres>=2.0",
+    "mcp>=1.2",
+    "structlog>=24.4",
+    "opentelemetry-sdk>=1.28",
+    "opentelemetry-exporter-otlp-proto-http>=1.28",
+    "prometheus-client>=0.21",
+]
+
+[project.optional-dependencies]
+# Aider-style repo map with real parsers; regex fallback is used when absent.
+treesitter = ["tree-sitter-language-pack>=0.2"]
+# Meeting intelligence (GPU recommended): ASR + diarization.
+meetings = ["faster-whisper>=1.1", "pyannote.audio>=3.3"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "pytest-cov>=6.0", "fakeredis>=2.26", "respx>=0.21",
+       "ruff>=0.8", "mypy>=1.13", "types-pyyaml"]
+
+[project.scripts]
+relay-eval = "relay.evals.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/relay"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "S", "RUF", "SIM", "PT"]
+ignore = ["S101", "S311", "S603", "RUF001", "RUF002", "RUF003", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S"]
+"src/relay/evals/**" = ["S"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+files = ["src/relay/core", "src/relay/security"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["integration: needs the docker compose stack"]
+addopts = "-m 'not integration'"

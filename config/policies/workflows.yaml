@@ -1,0 +1,14 @@
+# Workflow engine: deterministic, operator-authored steps. Posting digests/notes is allowed;
+# steps fed by untrusted content (tainted) need approval unless the workflow step itself requires it.
+agent: workflows
+budget: {usd: 0.25, tokens: 300000, steps: 30, wall_s: 900}
+defaults: {read: allow, write_internal: allow, write_external: allow, dangerous: deny}
+tainted_defaults: {write_external: approve}
+tools:
+  post_slack: {class: write_external, scan_outbound: true}
+  jira_transition: write_external
+  create_ticket: write_external
+  jira_search: read
+  github_search_prs: read
+  github_recent_deploys: read
+  kb_search: read

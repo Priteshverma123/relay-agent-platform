@@ -1,0 +1,31 @@
+name: pr-merged-release-notes
+description: When a PR is merged, transition linked Jira issues, draft a release note with an LLM, post to Slack.
+on:
+  github: pull_request.closed
+  if: "event.pull_request.merged"
+steps:
+  - id: keys
+    kind: llm
+    llm:
+      route: fast
+      prompt: "Extract Jira issue keys (like ABC-123) mentioned in the PR title/body. Return them as a list."
+      input: {title: "{{ event.pull_request.title }}", body: "{{ event.pull_request.body }}"}
+      output_schema: {type: object, properties: {keys: {type: array, items: {type: string}}}, required: [keys]}
+  - id: transition
+    kind: foreach
+    items: "steps.keys['keys']"
+    steps:
+      - id: done
+        tool: jira_transition
+        args: {key: "{{ item }}", to: "Done"}
+        retries: 2
+        on_error: continue
+  - id: note
+    kind: llm
+    llm:
+      route: fast
+      prompt: "Write a 2-3 sentence user-facing release note for this change. No marketing language."
+      input: {title: "{{ event.pull_request.title }}", body: "{{ event.pull_request.body }}"}
+  - id: post
+    tool: post_slack
+    args: {channel: "#releases", text: "*{{ event.pull_request.title }}*\n{{ steps.note.text }}"}

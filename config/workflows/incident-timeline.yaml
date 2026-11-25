@@ -1,0 +1,26 @@
+name: incident-timeline
+description: On an #incidents message, gather recent deploys and PRs and draft a timeline; a human approves before posting.
+on:
+  slack: message.incidents
+steps:
+  - id: deploys
+    tool: github_recent_deploys
+    args: {hours: 6}
+  - id: prs
+    tool: github_search_prs
+    args: {query: "is:pr is:merged merged:>={{ event.since }}"}
+  - id: timeline
+    kind: llm
+    llm:
+      route: answer
+      prompt: "Draft an incident timeline (UTC) from the alert text, deploys and merged PRs. Mark suspected causes as hypotheses."
+      input: {alert: "{{ event.text }}", deploys: "{{ steps.deploys.output }}", prs: "{{ steps.prs.output }}"}
+  - id: post
+    tool: post_slack
+    approval: true
+    message: "Post the drafted incident timeline to the incident thread?"
+    args: {channel: "#incidents", thread_ts: "{{ event.ts }}", text: "{{ steps.timeline.text }}"}
+on_error:
+  - id: report_failure
+    tool: post_slack
+    args: {channel: "#relay-alerts", text: "incident-timeline failed: {{ error }}"}

@@ -1,0 +1,18 @@
+# Coding agent: free to work inside its sandbox; anything visible outside needs a human
+# (draft PRs from tainted runs, i.e. every run on a public issue, are approved in Slack).
+agent: coding
+budget: {usd: 2.0, tokens: 3000000, steps: 80, tool_calls: 200, wall_s: 3600}
+defaults: {read: allow, write_internal: allow, write_external: approve, dangerous: deny}
+tainted_defaults: {write_external: approve, dangerous: deny}
+tools:
+  view_file: read
+  search_files: read
+  search_in_file: read
+  git_diff: read
+  kb_search: read
+  edit_file: write_internal
+  create_file: write_internal
+  run: write_internal          # sandboxed; the analyzers escalate risky commands to approval
+  run_tests: write_internal
+  open_pr: {class: write_external}   # draft PR only; the GitHub App cannot merge
+  merge_pr: {class: dangerous, decision: deny}
